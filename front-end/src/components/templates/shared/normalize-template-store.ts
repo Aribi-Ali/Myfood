@@ -1,0 +1,47 @@
+import type { TemplateStore } from '../types'
+
+/** Safe defaults for new/empty store payloads so templates never crash on .map/.slice. */
+export function normalizeTemplateStore(store: TemplateStore): TemplateStore {
+  return {
+    ...store,
+    name: store.name ?? 'Restaurant',
+    alias: store.alias ?? 'store',
+    description: store.description ?? null,
+    phone: store.phone ?? null,
+    email: store.email ?? null,
+    address: store.address ?? null,
+    logo: store.logo ?? null,
+    cover: store.cover ?? null,
+    cover_image: store.cover_image ?? null,
+    avg_rating: Number.isFinite(store.avg_rating) ? store.avg_rating : 0,
+    reviews_count: store.reviews_count ?? 0,
+    opening_hours: store.opening_hours ?? null,
+    badges: store.badges ?? [],
+    staff: store.staff ?? [],
+    foods: store.foods ?? [],
+    reviews: store.reviews ?? [],
+    ordering_enabled: store.ordering_enabled ?? true,
+    // New store detail fields
+    wilaya: store.wilaya ?? null,
+    daira: store.daira ?? null,
+    commune: store.commune ?? null,
+    latitude: store.latitude ?? null,
+    longitude: store.longitude ?? null,
+    type_categories: store.type_categories ?? [],
+    phones: store.phones ?? [],
+    social_links: store.social_links ?? [],
+    avg_prep_time: store.avg_prep_time ?? null,
+    base_delivery_fee: store.base_delivery_fee ?? null,
+    delivery_zone_radius: store.delivery_zone_radius ?? null,
+    avg_delivery_time_per_km: store.avg_delivery_time_per_km ?? null,
+    allows_pre_orders: store.allows_pre_orders ?? false,
+    pre_order_lead_time_hours: store.pre_order_lead_time_hours ?? null,
+    is_paused: store.is_paused ?? false,
+    pause_note: store.pause_note ?? null,
+    images: store.images ?? [],
+    offers: store.offers ?? [],
+    posts: store.posts ?? [],
+    banners: store.banners ?? [],
+    reservation_enabled: store.reservation_enabled ?? false,
+  }
+}

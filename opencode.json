@@ -1,0 +1,36 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "lsp": true,
+
+  "plugin": [
+    "@dietrichgebert/ponytail",
+    "superpowers@git+https://github.com/obra/superpowers.git"
+  ],
+
+    "autoupdate": true,
+
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://192.168.1.48:11434/v1"
+      },
+      "models": {
+        "qwen3-coder:latest": {
+          "name": "Qwen3-Coder 30B",
+            "tool_call": true,
+            "temperature": true,
+            "tools":true
+        },
+        "qwen3.5:0.8b": {
+          "name": "Qwen3.5 0.8B"
+        }
+      }
+    }
+  },
+
+
+
+  "model": "ollama/qwen3-coder:latest"
+}

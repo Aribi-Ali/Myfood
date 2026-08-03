@@ -1,0 +1,8 @@
+export { StoreTypeTags } from './store-type-tags'
+export { SocialLinks } from './social-links'
+export { StoreLocation } from './store-location'
+export { DeliveryInfo } from './delivery-info'
+export { PhotoGallery } from './photo-gallery'
+export { OffersSection } from './offers-section'
+export { BannerHero } from './banner-hero'
+export { StarRating } from './star-rating'

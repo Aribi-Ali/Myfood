@@ -1,0 +1,100 @@
+Roles:
+- Admin
+- Owner
+- Delivery
+- Client
+- Chef
+
+Core Features Provided by the App:
+- User Authentication & Profiles: account creation, login, password reset, profile editing.
+- Role-based Access: Admin/Owner/Delivery/Client/Chef permissions and guards.
+- Store Management: create/edit stores, store pages, store images, categories, banners.
+- Food Management: add/edit/delete foods, food images, pricing, offers, and stock hints.
+- Categories & Menus: organize foods into categories and public menus.
+- Search & Filters: full-text search, category filter, price range, rating filter, distance/zone filters.
+- Sorting & Pagination: sort by relevance, rating, distance, offers; paginated results.
+- Cart & Checkout: cart management, quantity updates, order creation flow.
+- ETA & Delivery Fees: estimated preparation + travel time, delivery fee calculation per store.
+- Orders: create, view, update order status, order items, order history for users and stores.
+- Promotions & Coupons: promo codes, offers, promo application logic.
+- Reviews & Ratings: create reviews, rating aggregation, review flags/complaints.
+- Chef Profiles & Hiring: chef portfolio (work, skills, diplomas, images), owner-only browse & hire/unhire.
+- Store Staff Management: store staff associations and roles.
+- Delivery Management: assign deliveries, delivery profiles for riders.
+- Notifications: order status updates, admin/store notifications (email/DB/other channels).
+- Caching: CacheService centralization for store lists and filters.
+- Localization: multi-language support (ar, en, fr) for UI and copy.
+- Admin Tools (partial): admin flags for verification, moderation flows (some UI pending).
+- Owner Dashboard (partial): manage stores, hired chefs, orders, and basic analytics.
+- Payment (scaffolded/partial): checkout payment step scaffolding (gateway integration pending).
+- Loyalty & Rewards (placeholder): loyalty program referenced but UI integration incomplete.
+- Complaints & Support: complaint model and flows for user reports.
+- Content & Blog: posts, pages, and simple content management.
+- Images & Media Handling: store/food/chef image uploads and featured images.
+- Testing: unit tests for services (e.g., ETAService) present.
+- Developer Utilities: migrations, seeders, factories for local development.
+
+Notes / Pending Improvements:
+- Accurate distance-based ETA: currently uses store zone radius fallback; integrate real distance calc (Haversine or external API).
+- Admin chef verification UI: backend flag exists; admin UI to verify chefs is pending.
+- Owner management of hired chefs: basic hire/unhire exists; a full management page is pending.
+- Payment gateway integration: requires API keys and implementation (Stripe/PayPal/etc.).
+- Loyalty program UI & inventory management: placeholders exist but UIs are incomplete.
+
+If you want this exported in another format (markdown, JSON), or want the list trimmed/expanded, tell me which format.
+
+Status Summary (Completed / Partial / Pending):
+- User Authentication & Profiles: Completed
+- Role-based Access: Completed
+- Store Management: Completed
+- Food Management: Completed
+- Categories & Menus: Completed
+- Search & Filters: Completed (core filters: category, price, rating implemented; distance-based filtering/accuracy Partial)
+- Sorting & Pagination: Completed
+- Cart & Checkout: Completed
+- ETA & Delivery Fees: Partial (ETA service and order fields implemented; accurate distance-based ETA pending)
+- Orders: Completed
+- Promotions & Coupons: Completed
+- Reviews & Ratings: Completed
+- Chef Profiles & Hiring: Partial (public profile and owner hire/unhire implemented; admin verification UI pending)
+- Store Staff Management: Completed
+- Delivery Management: Completed
+- Notifications: Completed
+- Caching: Completed
+- Localization: Completed
+- Admin Tools: Partial (verification flags present; admin UI pending)
+- Owner Dashboard: Partial (core flows present; hired-chefs management page pending)
+- Payment: Pending (gateway integration required)
+- Loyalty & Rewards: Pending (placeholder present)
+- Complaints & Support: Completed
+- Content & Blog: Completed
+- Images & Media Handling: Completed
+- Testing: Partial (unit tests present for some services)
+- Developer Utilities: Completed
+
+Next Recommended Actions:
+- Implement accurate distance calculation (Haversine or external API) to improve ETA and distance filters.
+- Add an admin Livewire page to review and verify chef profiles.
+- Build owner hired-chefs management page with hire history and active/inactive state.
+- Integrate a payment gateway (Stripe or PayPal) and secure checkout flows.
+- Flesh out loyalty/rewards UI and inventory management pages.
+
+Recent changes (2026-06-13):
+- Added reusable searchable select UI component and replaced long native `<select>` elements across profile, owner, and client views (`resources/views/components/searchable-select.blade.php`).
+- Moved avatar upload from settings to a dedicated `AvatarManager` Livewire component (`app/Livewire/Profile/AvatarManager.php` + `resources/views/livewire/profile/avatar-manager.blade.php`) and updated profile layout to an Alpine-powered tabbed design (`resources/views/profile.blade.php`).
+- Implemented secure chef verification document serving for admins: `app/Http/Controllers/Admin/ChefDocumentController.php` and route `GET /admin/chef-docs/{id}`.
+- Created `RolesManager` component for role-related actions and added Become Chef/Become Delivery flows inside the profile UI.
+- Ensured owners can place orders from their own store (order creation flow adjusted in `app/Livewire/Client/StoreDetails.php` and `app/Services/OrderService.php`).
+- Performed repository-wide audit and generated final report at `docs/final_audit_report.md`.
+
+Status Summary (delta):
+- Searchable selects: Completed
+- Avatar management (moved + componentized): Completed
+- Profile redesign (tabs + subpages): Completed
+- Secure chef-doc serving: Completed
+- Owner ordering from own store: Confirmed/Completed
+- Final UI/Feature audit: Completed (see `docs/final_audit_report.md`)
+
+If you want this exported in another format or trimmed, tell me which format.
+
+If you want this file auto-converted to Markdown and added to the repository README, tell me where to place it.

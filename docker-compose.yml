@@ -1,0 +1,107 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=pizza
+      - DB_USERNAME=pizza
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=null
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - SANCTUM_TOKEN_TTL=525600
+      - FRONTEND_URL=${FRONTEND_URL}
+      - BROADCAST_CONNECTION=redis-pubsub
+    volumes:
+      - storage_data:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  node:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm ci --omit=dev && npm run build && npx next start -p 3000"
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${API_URL}
+      - NEXT_PUBLIC_WS_APP_KEY=${WS_APP_KEY:-yallahkool-reverb-key}
+      - NEXT_PUBLIC_WS_HOST=ws-server
+      - NEXT_PUBLIC_WS_PORT=8080
+      - NEXT_PUBLIC_REVERB_APP_KEY=${WS_APP_KEY:-yallahkool-reverb-key}
+      - NEXT_PUBLIC_REVERB_HOST=ws-server
+      - NEXT_PUBLIC_REVERB_PORT=8080
+    volumes:
+      - ./front-end:/app
+    depends_on:
+      - app
+
+  db:
+    image: mariadb:11
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=pizza
+      - MYSQL_USER=pizza
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ws-server:
+    build:
+      context: ./ws-server
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    environment:
+      - NODE_ENV=production
+      - WS_HOST=0.0.0.0
+      - WS_PORT=8080
+      - WS_APP_KEY=${WS_APP_KEY:-yallahkool-reverb-key}
+      - WS_APP_SECRET=${WS_APP_SECRET:-yallahkool-reverb-secret}
+      - LARAVEL_API_URL=http://app/api/v1
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+      - WS_NODE_ID=node-docker
+      - HEALTH_PORT=9090
+      - LOG_LEVEL=info
+    depends_on:
+      redis:
+        condition: service_started
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  db_data:
+  redis_data:
+  storage_data:

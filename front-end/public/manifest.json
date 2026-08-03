@@ -1,0 +1,16 @@
+{
+  "name": "YallahKool",
+  "short_name": "YallahKool",
+  "description": "Order food online from local restaurants.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ea580c",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

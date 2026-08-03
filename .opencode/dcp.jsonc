@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Opencode-DCP/opencode-dynamic-context-pruning/master/dcp.schema.json",
+  // DISABLED BY DEFAULT. This is a reversible, benchmark-first install.
+  // Context pruning is NOT active in normal sessions.
+  // To enable: set "enabled": true, restart OpenCode, and disable OpenCode's
+  // built-in auto-compaction (add "compaction": { "auto": false } to
+  // opencode.json or set OPENCODE_DISABLE_AUTOCOMPACT=1) to avoid conflicts.
+  // To revert: delete this file AND remove "@tarquinen/opencode-dcp" from the
+  // "plugin" arrays in .opencode/opencode.json and .opencode/tui.json.
+  "enabled": false,
+
+  // Local model tuning: Qwen3-Coder 30B runs on a local Ollama server
+  // (192.168.1.48). The effective context window depends on the Ollama
+  // Modelfile num_ctx setting (Ollama default is only 4096; the model itself
+  // supports up to 256K). Limits are expressed as a percentage of the model's
+  // context window so they adapt. Measure the real value first:
+  //   /dcp context
+  // Then adjust these two values accordingly.
+  "compress": {
+    "permission": "allow",
+    "maxContextLimit": "75%",
+    "minContextLimit": "50%",
+    "nudgeForce": "soft",
+    "protectedTools": ["skill", "compress"]
+  },
+
+  "strategies": {
+    "deduplication": {
+      "enabled": true
+    },
+    "purgeErrors": {
+      "enabled": true,
+      "turns": 4
+    }
+  }
+}

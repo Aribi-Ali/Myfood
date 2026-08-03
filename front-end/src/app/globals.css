@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-background: #fff0de;
+  --color-foreground: #121212;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Playfair Display', serif;
+
+  --color-primary: #b1454a;
+  --color-primary-hover: #963a3e;
+  --color-cream: #fff0de;
+  --color-cream-dark: #f5e6d0;
+  --color-surface: #ffffff;
+  --color-surface-alt: #faf3ea;
+  --color-border: #e8ddd0;
+  --color-muted: #888888;
+  --color-ink: #121212;
+  --color-charcoal: #1f1e31;
+
+  --color-orange-50: #fff7ed;
+  --color-orange-100: #ffedd5;
+  --color-orange-200: #fed7aa;
+  --color-orange-300: #fdba74;
+  --color-orange-400: #fb923c;
+  --color-orange-500: #f97316;
+  --color-orange-600: #e85d04;
+  --color-orange-700: #c2410c;
+  --color-orange-800: #9a3412;
+  --color-orange-900: #7c2d12;
+}
+
+.dark {
+  --color-background: #0a0a0a;
+  --color-foreground: #f5f0e8;
+  --color-primary: #d4656a;
+  --color-primary-hover: #e8888c;
+  --color-cream: #0a0a0a;
+  --color-cream-dark: #141414;
+  --color-surface: #141414;
+  --color-surface-alt: #1a1a1a;
+  --color-border: #2a2a2a;
+  --color-muted: #777777;
+  --color-ink: #f5f0e8;
+  --color-charcoal: #e8e0d4;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+.gjs-frame {
+  border: none;
+}
+
+/* -- Animations -- */
+
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes marquee-right {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes draw-line {
+  from { stroke-dashoffset: 1000; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* -- Utility Classes -- */
+
+.sushi-card {
+  transition: transform 400ms cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 400ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.sushi-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px -12px rgba(0,0,0,0.15);
+}
+
+/* Japanese kanji decorative text */
+.kanji-deco {
+  font-family: 'Noto Serif JP', serif;
+  writing-mode: vertical-rl;
+  opacity: 0.06;
+}
+
+/* Warm gradient overlay */
+.warm-gradient {
+  background: linear-gradient(135deg, #fff0de 0%, #f5e6d0 50%, #ede0cc 100%);
+}
+
+.dark .warm-gradient {
+  background: linear-gradient(135deg, #0a0a0a 0%, #141414 50%, #1a1a1a 100%);
+}
+
+/* -- Reduced Motion -- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
