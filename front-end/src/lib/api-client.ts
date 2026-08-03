@@ -45,9 +45,12 @@ class ApiClient {
     const method = (options.method || 'GET').toUpperCase()
 
     // Sanctum validates CSRF for stateful requests — fetch the cookie first
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-      await this.ensureCsrf()
+    // Ensure CSRF token exists for any request that may need it (including GET when session is used)
+    if (!this.getCsrfToken()) {
+      await this.ensureCsrf();
     }
+
+  
 
     const headers: Record<string, string> = {
       Accept: 'application/json',
