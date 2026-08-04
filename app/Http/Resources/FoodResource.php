@@ -24,6 +24,8 @@ class FoodResource extends JsonResource
             'effective_price' => (float) $this->effective_price,
             'is_available'  => $this->is_available,
             'is_offer'      => $this->is_offer,
+            'is_today_special' => $this->is_today_special,
+            'today_special_expires_at' => $this->today_special_expires_at,
             'is_on_offer'   => $this->is_on_offer,
             'ingredients'   => $this->ingredients,
             'cooking_time'  => $this->cooking_time,

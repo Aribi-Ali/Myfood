@@ -368,6 +368,8 @@
   "add_to_areas": "Ajouter :n zone(s)",
   "commune": "Commune",
   "daira": "Daïra",
+  "latitude": "Latitude",
+  "longitude": "Longitude",
   "all_cities": "Toutes les villes",
   "no_cities": "Aucune ville trouvée",
   "page_not_found": "Page introuvable",

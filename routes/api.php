@@ -73,6 +73,7 @@ use App\Http\Controllers\Api\PhoneVerificationController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\BranchPageController;
 use App\Http\Controllers\Api\PublicBranchController;
+use App\Http\Controllers\Api\StoreBranchRelationshipController;
 
 // ============================================================================
 // Health Check (no auth, no version prefix)
@@ -197,11 +198,11 @@ Route::prefix('v1')->group(function () {
 
         // ── Owner: Branches ──────────────────────────────────────────────────────
         Route::prefix('stores/{store}/branches')->group(function () {
-            Route::get('/',                        [BranchController::class, 'index']);
+            // index moved to store.owner group below to avoid public route shadowing
             Route::post('/',                       [BranchController::class, 'store']);
         });
         Route::prefix('branches/{branch}')->group(function () {
-            Route::get('/',                        [BranchController::class, 'show']);
+            // show moved to store.owner group below to avoid public route shadowing
             Route::put('/',                        [BranchController::class, 'update']);
             Route::delete('/',                     [BranchController::class, 'destroy']);
             Route::put('/template',                [BranchController::class, 'updateTemplate']);
@@ -213,6 +214,26 @@ Route::prefix('v1')->group(function () {
             Route::post('/template', [BranchTemplateController::class, 'store']);
             Route::put('/template/sync', [BranchTemplateController::class, 'updateSync']);
             Route::delete('/template', [BranchTemplateController::class, 'destroy']);
+            Route::post('/template/clone', [BranchTemplateController::class, 'clone']);
+            Route::get('/template/export', [BranchTemplateController::class, 'export']);
+            Route::post('/template/import', [BranchTemplateController::class, 'import']);
+            
+            // Branch relationship endpoints
+            Route::post('/inherit-from-parent', [BranchController::class, 'inheritFromParent']);
+            Route::post('/link-to-branch', [BranchController::class, 'linkToBranch']);
+            
+            // Branch customization endpoints
+            Route::get('/customization-status', [BranchController::class, 'getCustomizationStatus']);
+            Route::post('/reset-to-source', [BranchController::class, 'resetToSource']);
+            Route::put('/template/blocks', [BranchController::class, 'updateTemplateBlocks']);
+            Route::put('/template/theme-variables', [BranchController::class, 'updateThemeVariables']);
+            Route::put('/template/content', [BranchController::class, 'updateTemplateContent']);
+        });
+        
+        // Store branch relationships management
+        Route::prefix('stores/{store}/branch-relationships')->group(function () {
+            Route::get('/', [StoreBranchRelationshipController::class, 'index']);
+            Route::post('/set-main-branch', [StoreBranchRelationshipController::class, 'setMainBranch']);
         });
 
         // ── Owner: Branch Pages (page builder) ────────────────────────────────────
@@ -220,6 +241,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/',                 [BranchPageController::class, 'show']);
             Route::put('/',                 [BranchPageController::class, 'save']);
             Route::delete('/',              [BranchPageController::class, 'delete']);
+            Route::get('/versions',         [BranchPageController::class, 'versions']);
+            Route::post('/restore',         [BranchPageController::class, 'restore']);
         });
         Route::prefix('branches/{branch}/pages')->group(function () {
             Route::get('/',                             [BranchPageController::class, 'list']);
@@ -228,12 +251,18 @@ Route::prefix('v1')->group(function () {
             Route::get('/{slug}',                       [BranchPageController::class, 'showSlug'])->where('slug', '[a-z0-9-]+');
             Route::put('/{slug}',                       [BranchPageController::class, 'saveSlug'])->where('slug', '[a-z0-9-]+');
             Route::delete('/{slug}',                    [BranchPageController::class, 'deleteSlug'])->where('slug', '[a-z0-9-]+');
+            Route::get('/{slug}/versions',              [BranchPageController::class, 'versions'])->where('slug', '[a-z0-9-]+');
+            Route::post('/{slug}/restore',              [BranchPageController::class, 'restore'])->where('slug', '[a-z0-9-]+');
         });
 
         // ── Owner: Store info & template selection ─────────────────────────
         Route::middleware('store.owner')->group(function () {
             Route::get('/owner/store',             [StoreController::class, 'showOwner']);
             Route::put('/owner/store/template',    [StoreController::class, 'updateTemplate']);
+
+            // ── Owner: Branches (owner-only GET routes) ───────────────────────
+            Route::get('/owner/stores/{store}/branches', [BranchController::class, 'index']);
+            Route::get('/owner/branches/{branch}',       [BranchController::class, 'show']);
 
             // ── Owner: Foods CRUD ──────────────────────────────────────────────────
             Route::prefix('owner/foods')->group(function () {
@@ -244,6 +273,9 @@ Route::prefix('v1')->group(function () {
                 Route::put('/{id}',                [OwnerFoodController::class, 'update']);
                 Route::delete('/{id}',             [OwnerFoodController::class, 'destroy']);
                 Route::post('/{id}/image',         [OwnerFoodController::class, 'uploadImage']);
+                Route::post('/{id}/today-special', [OwnerFoodController::class, 'setTodaySpecial']);
+                Route::delete('/{id}/today-special', [OwnerFoodController::class, 'unsetTodaySpecial']);
+                Route::get('/today-special',       [OwnerFoodController::class, 'getTodaySpecialFoods']);
             });
 
             // ── Owner: Custom Pages (file-based, multi-page) ─────────────────────
@@ -251,6 +283,8 @@ Route::prefix('v1')->group(function () {
                 Route::get('/',                 [PageController::class, 'show']);
                 Route::put('/',                 [PageController::class, 'save']);
                 Route::delete('/',              [PageController::class, 'delete']);
+                Route::get('/versions',         [PageController::class, 'versions']);
+                Route::post('/restore',         [PageController::class, 'restore']);
             });
 
             // ── Owner: Multi-page management ──────────────────────────────────────
@@ -260,6 +294,8 @@ Route::prefix('v1')->group(function () {
                 Route::get('/{slug}',           [PageController::class, 'showSlug'])->where('slug', '[a-z0-9-]+');
                 Route::put('/{slug}',           [PageController::class, 'saveSlug'])->where('slug', '[a-z0-9-]+');
                 Route::delete('/{slug}',        [PageController::class, 'deleteSlug'])->where('slug', '[a-z0-9-]+');
+                Route::get('/{slug}/versions',  [PageController::class, 'versions'])->where('slug', '[a-z0-9-]+');
+                Route::post('/{slug}/restore',  [PageController::class, 'restore'])->where('slug', '[a-z0-9-]+');
             });
 
             // ── Owner: Staff management ──────────────────────────────────────────

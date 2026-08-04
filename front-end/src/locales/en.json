@@ -448,6 +448,8 @@
   "add_to_areas": "Add :n area(s)",
   "commune": "Commune",
   "daira": "Daira",
+  "latitude": "Latitude",
+  "longitude": "Longitude",
   "all_cities": "All cities",
   "no_cities": "No cities found",
   "page_not_found": "Page not found",

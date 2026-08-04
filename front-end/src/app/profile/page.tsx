@@ -40,10 +40,14 @@ export default function ProfileInfoPage() {
   async function loadProfile() {
     const res = await api.get<{ data: UserProfile }>('/user')
     const p = res.data
-    setName(p.name)
+    setName(p.name || '')
     setPhone(p.phone || '')
     setAddress(p.address || '')
-    if (p.wilaya) setCityLabel(p.wilaya)
+    if (p.wilaya) {
+      setCityLabel(p.wilaya)
+    } else {
+      setCityLabel('')
+    }
     setProfilePhoto(getImageUrl(p.profile_image))
   }
 

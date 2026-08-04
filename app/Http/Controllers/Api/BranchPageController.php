@@ -234,6 +234,39 @@ class BranchPageController extends Controller
         return response()->json(['message' => 'Branch page deleted.']);
     }
 
+    // ── Version history (Shopify-style rollback) ──
+
+    /**
+     * List saved versions of a branch page. Slug '' = main page.
+     */
+    public function versions(int $branchId, string $slug = ''): JsonResponse
+    {
+        $branch = $this->getBranch($branchId);
+        if (!$branch) {
+            return $this->notFound('Branch not found.');
+        }
+        return response()->json(['versions' => $this->pageStorage->versions($branch->id, $slug, self::ENTITY_TYPE)]);
+    }
+
+    /**
+     * Roll a branch page back to a previous version. Slug '' = main page.
+     */
+    public function restore(Request $request, int $branchId, string $slug = ''): JsonResponse
+    {
+        $branch = $this->getBranch($branchId);
+        if (!$branch) {
+            return $this->notFound('Branch not found.');
+        }
+        $version = $request->validate(['version' => 'required|integer|min:1'])['version'];
+
+        if (!$this->pageStorage->restore($branch->id, $slug, $version, self::ENTITY_TYPE)) {
+            return $this->notFound('Version not found.');
+        }
+        Cache::forget('public_branch_' . $branch->alias);
+
+        return response()->json(['message' => 'Branch page restored to version ' . $version . '.']);
+    }
+
     /**
      * Copy all pages from one branch to another (same store).
      * POST /branches/{branch}/pages/copy-from/{sourceBranch}

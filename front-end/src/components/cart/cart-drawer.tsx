@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/auth'
 import { useCart, useCheckout, CheckoutProvider } from '@/contexts/cart'
 import { useLanguage } from '@/contexts/language'
 import { Modal } from '@/components/modal'
+import { CitySearchSelect } from '@/components/city-search-select'
 
 export function CartDrawer({ storeId }: { storeId?: number | null }) {
   return (
@@ -153,19 +154,19 @@ function CartDrawerInner({ storeId }: { storeId?: number | null }) {
                 <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} required
                   className="w-full px-4 py-3 text-sm rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 bg-stone-50" />
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                {(['Wilaya', 'Daira', 'Commune'] as const).map((key) => {
-                  const label = t(key === 'Wilaya' ? 'wilaya' : key === 'Daira' ? 'daira' : 'commune')
-                  const val = key === 'Wilaya' ? wilaya : key === 'Daira' ? daira : commune
-                  const set = key === 'Wilaya' ? setWilaya : key === 'Daira' ? setDaira : setCommune
-                  return (
-                    <div key={key}>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5 text-stone-500">{label}</label>
-                      <input type="text" value={val} onChange={(e) => set(e.target.value)}
-                        className="w-full px-3 py-3 text-sm rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 bg-stone-50" />
-                    </div>
-                  )
-                })}
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5 text-stone-500">{t('city')}</label>
+                <CitySearchSelect
+                  value={wilaya || ''}
+                  onChange={(val, meta) => {
+                    if (meta) {
+                      setWilaya(val);
+                      // For now we're only using wilaya in cart drawer, but we could populate daira/commune too
+                    } else {
+                      setWilaya(val);
+                    }
+                  }}
+                />
               </div>
             </>
           )}

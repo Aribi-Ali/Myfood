@@ -12,11 +12,11 @@ return new class extends Migration {
     {
         Schema::create('branch_templates', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branch_id')->constrained('branches')->onDelete('cascade');
+            $table->foreignId('branch_id')->constrained('store_branches')->onDelete('cascade');
             $table->foreignId('template_id')->constrained('templates')->onDelete('cascade');
             $table->boolean('is_synced')->default(false);
             $table->unsignedBigInteger('source_branch_id')->nullable();
-            $table->foreign('source_branch_id')->references('id')->on('branches')->onDelete('set null');
+            $table->foreign('source_branch_id')->references('id')->on('store_branches')->onDelete('set null');
             $table->unsignedBigInteger('source_template_id')->nullable();
             $table->foreign('source_template_id')->references('id')->on('templates')->onDelete('set null');
             $table->timestamps();

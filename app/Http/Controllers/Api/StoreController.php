@@ -91,7 +91,7 @@ class StoreController extends Controller
     public function show(string $alias): JsonResponse
     {
         $cacheKey = 'store:alias_' . $alias;
-        $store    = Cache::remember(
+        $store = Cache::remember(
             $cacheKey,
             config('business.cache.store_detail', 900),
             fn () => Store::where('alias', $alias)
@@ -118,6 +118,14 @@ class StoreController extends Controller
             return $this->error('Restaurant introuvable.', 404);
         }
 
+        // Get today's special foods for this store
+        $todaySpecialFoods = Food::where('store_id', $store->id)
+            ->where('is_today_special', true)
+            ->where('is_available', true)
+            ->where('today_special_expires_at', '>', now())
+            ->orderBy('name')
+            ->get();
+
         $reviews = $store->reviews()
             ->with('client:id,name,profile_image')
             ->orderByDesc('created_at')
@@ -133,6 +141,7 @@ class StoreController extends Controller
         return $this->success([
             'store'   => StoreResource::make($store),
             'foods'   => FoodResource::collection($store->foods),
+            'today_special_foods' => FoodResource::collection($todaySpecialFoods),
             'reviews' => collect($reviews->items())->map(fn ($r) => [
                 'id'         => $r->id,
                 'rating'     => $r->rating,

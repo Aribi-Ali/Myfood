@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/contexts/auth'
+import { SettingsNav } from '@/components/settings-nav'
 import { Phone, ShieldCheck, ShieldAlert, Plus, Trash2, Loader2, Check } from 'lucide-react'
 
 interface PhoneEntry {
@@ -117,7 +118,9 @@ export default function PhonesPage() {
   const hasStore = user?.store?.id
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="flex flex-col min-h-0 lg:flex-row lg:gap-6">
+      <SettingsNav />
+      <div className="flex-1 min-w-0 min-h-0 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Phone Numbers</h1>
         <p className="text-gray-500 dark:text-slate-400 mt-1">Manage and verify your phone numbers.</p>
@@ -205,6 +208,7 @@ export default function PhonesPage() {
           )}
         </div>
       )}
+      </div>
     </div>
   )
 }

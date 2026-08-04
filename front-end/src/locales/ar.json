@@ -368,6 +368,8 @@
   "add_to_areas": "أضف :n منطقة",
   "commune": "البلدية",
   "daira": "الدائرة",
+  "latitude": "خط العرض",
+  "longitude": "خط الطول",
   "all_cities": "كل المدن",
   "no_cities": "لا توجد مدن",
   "page_not_found": "الصفحة غير موجودة",

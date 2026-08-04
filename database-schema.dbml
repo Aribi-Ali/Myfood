@@ -1,0 +1,1281 @@
+// DBML Schema for dbdiagram.io
+// Generated from Laravel migrations
+
+// ======================== CORE ========================
+
+Table users {
+  id bigint [pk, increment]
+  name varchar(255)
+  email varchar(255) [unique]
+  email_verified_at timestamp
+  password varchar(255)
+  phone varchar(255) [unique]
+  phone_verified_at timestamp
+  role varchar(255) [default: 'client']
+  profile_image varchar(255)
+  wilaya varchar(255)
+  daira varchar(255)
+  commune varchar(255)
+  delivery_zones json
+  address varchar(255)
+  latitude decimal(10,8)
+  longitude decimal(11,8)
+  remember_token varchar(100)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table password_reset_tokens {
+  email varchar(255) [pk]
+  token varchar(255)
+  created_at timestamp
+}
+
+Table sessions {
+  id varchar(255) [pk]
+  user_id bigint
+  ip_address varchar(45)
+  user_agent text
+  payload longtext
+  last_activity int
+}
+
+Table personal_access_tokens {
+  id bigint [pk, increment]
+  tokenable_type varchar(255)
+  tokenable_id bigint
+  name varchar(255)
+  token varchar(64) [unique]
+  abilities text
+  last_used_at timestamp
+  expires_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table notifications {
+  id uuid [pk]
+  type varchar(255)
+  notifiable_type varchar(255)
+  notifiable_id bigint
+  data text
+  read_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table cache {
+  key varchar(255) [pk]
+  value mediumtext
+  expiration int
+}
+
+Table cache_locks {
+  key varchar(255) [pk]
+  owner varchar(255)
+  expiration int
+}
+
+Table jobs {
+  id bigint [pk, increment]
+  queue varchar(255)
+  payload longtext
+  attempts tinyint  
+  reserved_at int  
+  available_at int  
+  created_at int  
+}
+
+Table job_batches {
+  id varchar(255) [pk]
+  name varchar(255)
+  total_jobs int
+  pending_jobs int
+  failed_jobs int
+  failed_job_ids longtext
+  options mediumtext
+  cancelled_at int
+  created_at int
+  finished_at int
+}
+
+Table failed_jobs {
+  id bigint [pk, increment]
+  uuid varchar(255) [unique]
+  connection text
+  queue text
+  payload longtext
+  exception longtext
+  failed_at timestamp
+}
+
+Table settings {
+  id bigint [pk, increment]
+  key varchar(255) [unique]
+  value text
+  type varchar(255) [default: 'string']
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== GEOGRAPHY ========================
+
+Table wilayas {
+  id bigint [pk, increment]
+  code varchar(3) [unique]
+  name_fr varchar(255)
+  name_ar varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table dairas {
+  id bigint [pk, increment]
+  wilaya_id bigint
+  name_fr varchar(255)
+  name_ar varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table communes {
+  id bigint [pk, increment]
+  daira_id bigint
+  wilaya_id bigint
+  name_fr varchar(255)
+  name_ar varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== STORES ========================
+
+Table stores {
+  id bigint [pk, increment]
+  cover_image_id bigint
+  main_image_id bigint
+  owner_id bigint [unique]
+  name varchar(255)
+  alias varchar(255) [unique]
+  template_slug varchar(50)
+  description text
+  latitude decimal(11,7)
+  longitude decimal(11,7)
+  email varchar(255)
+  phone varchar(255)
+  opening_hours text
+  cover_image varchar(255)
+  logo_path varchar(255)
+  document_path varchar(255)
+  wilaya varchar(255)
+  daira varchar(255)
+  commune varchar(255)
+  address varchar(255)
+  is_approved boolean [default: false]
+  onboarding_status varchar(255) [default: 'pending']
+  is_active boolean [default: true]
+  avg_prep_time int [default: 25]
+  delivery_zone_radius decimal(8,2) [default: 5.00]
+  base_delivery_fee int [default: 200]
+  avg_delivery_time_per_km int [default: 3]
+  ordering_enabled boolean [default: true]
+  is_paused boolean [default: false]
+  pause_note varchar(255)
+  allows_pre_orders boolean [default: false]
+  pre_order_lead_time_hours int   [default: 1]
+  order_prefix varchar(20)
+  order_suffix varchar(20)
+  order_padding tinyint   [default: 4]
+  order_start_number int   [default: 1]
+  break_start timestamp
+  break_end timestamp
+  break_note text
+  theme_preset_id bigint
+  is_subscription_managed boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table store_images {
+  id bigint [pk, increment]
+  store_id bigint
+  path varchar(255)
+  is_cover boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table store_social_links {
+  id bigint [pk, increment]
+  store_id bigint
+  platform varchar(50)
+  url varchar(255)
+  label varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table store_domains {
+  id bigint [pk, increment]
+  store_id bigint
+  domain varchar(255) [unique]
+  verification_code varchar(64)
+  verified_at timestamp
+  is_primary boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table store_payouts {
+  id bigint [pk, increment]
+  store_id bigint
+  amount decimal(12,2)
+  currency varchar(3) [default: 'DZD']
+  status varchar(255) [default: 'pending']
+  bank_name varchar(255)
+  bank_account varchar(255)
+  phone varchar(255)
+  notes text
+  approved_by bigint
+  approved_at timestamp
+  paid_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table store_phones {
+  id bigint [pk, increment]
+  store_id bigint
+  phone varchar(30)
+  verified_at timestamp
+  is_primary boolean [default: false]
+  order_index tinyint   [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table store_staff {
+  id bigint [pk, increment]
+  store_id bigint
+  user_id bigint
+  store_role varchar(255) [default: 'cashier']
+  years_of_experience int
+  diplomas varchar(255)
+  age int
+  bio text
+  display_on_profile boolean [default: true]
+  permissions text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table store_badge {
+  id bigint [pk, increment]
+  store_id bigint
+  badge_id bigint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table badges {
+  id bigint [pk, increment]
+  name varchar(255)
+  description varchar(255)
+  color_code varchar(255) [default: '#f97316']
+  icon varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table store_type_categories {
+  id bigint [pk, increment]
+  name varchar(255)
+  slug varchar(255) [unique]
+  icon varchar(10) [default: '🏪']
+  is_active boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table store_type_category {
+  id bigint [pk, increment]
+  store_id bigint
+  store_type_category_id bigint
+}
+
+Table zones {
+  id bigint [pk, increment]
+  store_id bigint
+  name varchar(255)
+  radius_km decimal(8,2)
+  fee decimal(8,2)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table banners {
+  id bigint [pk, increment]
+  store_id bigint
+  image_path varchar(255)
+  link_url varchar(255)
+  active boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table offers {
+  id bigint [pk, increment]
+  store_id bigint
+  title varchar(255)
+  description text
+  image_path varchar(255)
+  valid_from datetime
+  valid_to datetime
+  active boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table posts {
+  id bigint [pk, increment]
+  store_id bigint
+  title varchar(255)
+  content text
+  image varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== CATEGORIES & FOODS ========================
+
+Table categories {
+  id bigint [pk, increment]
+  name varchar(255)
+  slug varchar(255) [unique]
+  image varchar(255)
+  short_description varchar(255)
+  full_description text
+  meta_title varchar(150)
+  meta_description text
+  meta_keywords varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table foods {
+  id bigint [pk, increment]
+  store_id bigint
+  category_id bigint
+  name varchar(255)
+  description text
+  image varchar(255)
+  price decimal(10,2)
+  price_usd decimal(10,2)
+  price_eur decimal(10,2)
+  new_price decimal(10,2)
+  new_price_usd decimal(10,2)
+  new_price_eur decimal(10,2)
+  is_available boolean [default: true]
+  is_offer boolean [default: false]
+  is_today_special boolean [default: false]
+  today_special_expires_at timestamp
+  ingredients text
+  cooking_time int [default: 15]
+  bought_count int [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table food_images {
+  id bigint [pk, increment]
+  food_id bigint
+  image_path varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table food_offer_items {
+  id bigint [pk, increment]
+  parent_food_id bigint
+  child_food_id bigint
+  quantity int [default: 1]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table category_food {
+  food_id bigint
+  category_id bigint
+}
+
+// ======================== PROMO CODES ========================
+
+Table promo_codes {
+  id bigint [pk, increment]
+  store_id bigint
+  code varchar(255) [unique]
+  type varchar(255)
+  value decimal(10,2)
+  expires_at datetime
+  is_active boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== ORDERS ========================
+
+Table orders {
+  id bigint [pk, increment]
+  store_order_number int  
+  client_id bigint
+  store_id bigint
+  delivery_id bigint
+  assigned_chef_id bigint
+  promo_code_id bigint
+  discount_amount decimal(10,2) [default: 0.00]
+  status varchar(255) [default: 'pending']
+  delivery_type varchar(255) [default: 'delivery']
+  pickup_time varchar(255)
+  scheduled_at datetime
+  estimated_delivery_minutes int
+  delivery_fee int [default: 200]
+  total_amount decimal(10,2)
+  commission_amount decimal(10,2) [default: 0.00]
+  address text
+  latitude decimal(10,8)
+  longitude decimal(11,8)
+  phone varchar(255)
+  notes text
+  cancelled_at timestamp
+  refunded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table order_items {
+  id bigint [pk, increment]
+  order_id bigint
+  food_id bigint
+  quantity int [default: 1]
+  price decimal(10,2)
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== REVIEWS & COMPLAINTS ========================
+
+Table reviews {
+  id bigint [pk, increment]
+  client_id bigint
+  store_id bigint
+  rating int [default: 5]
+  comment text
+  admin_reply text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table review_flags {
+  id bigint [pk, increment]
+  review_id bigint
+  user_id bigint
+  reason varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table complaints {
+  id bigint [pk, increment]
+  client_id bigint
+  store_id bigint
+  order_id bigint
+  food_id bigint
+  subject varchar(255)
+  description text
+  status varchar(255) [default: 'pending']
+  category varchar(255)
+  admin_reply text
+  resolved_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== FAVORITES ========================
+
+Table favorites {
+  id bigint [pk, increment]
+  user_id bigint
+  store_id bigint
+  food_id bigint
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== DELIVERY ========================
+
+Table delivery_profiles {
+  id bigint [pk, increment]
+  user_id bigint [unique]
+  phone varchar(255)
+  image varchar(255)
+  transporter_type varchar(255) [default: 'bike']
+  is_working boolean [default: false]
+  day_price decimal(10,2) [default: 0]
+  night_price decimal(10,2) [default: 0]
+  pricing_model varchar(255)
+  current_tier_id bigint
+  current_month_orders int [default: 0]
+  total_earnings decimal(12,2) [default: 0]
+  total_platform_fees decimal(12,2) [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table favorite_deliveries {
+  id bigint [pk, increment]
+  owner_id bigint
+  delivery_user_id bigint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table delivery_profile_areas {
+  id bigint [pk, increment]
+  delivery_profile_id bigint
+  wilaya_id bigint
+  daira_id bigint
+  commune_id bigint
+  day_price decimal(10,2) [default: 0]
+  night_price decimal(10,2) [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table delivery_pricing_tiers {
+  id bigint [pk, increment]
+  model_type varchar(255)
+  name varchar(255)
+  tier_level int [default: 1]
+  min_monthly_orders int [default: 0]
+  max_monthly_orders int
+  commission_percent decimal(5,2)
+  flat_fee_per_delivery decimal(10,2)
+  monthly_price decimal(10,2)
+  max_deliveries int
+  is_active boolean [default: true]
+  sort_order int [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table delivery_subscriptions {
+  id bigint [pk, increment]
+  delivery_profile_id bigint
+  tier_id bigint
+  duration_offer_id bigint
+  start_date datetime
+  end_date datetime
+  status varchar(255) [default: 'active']
+  auto_renew boolean [default: true]
+  monthly_price_snapshot decimal(10,2)
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== CHEFS ========================
+
+Table chef_profiles {
+  id bigint [pk, increment]
+  user_id bigint [unique]
+  bio varchar(1000)
+  skills json
+  diplomas json
+  specialization varchar(255)
+  years_of_experience int [default: 0]
+  experience_years int [default: 0]
+  cuisines_expertise varchar(255)
+  is_available boolean [default: true]
+  is_public boolean [default: true]
+  working_hours json
+  average_rating decimal(3,2) [default: 5.00]
+  reviews_count int [default: 0]
+  hourly_rate int
+  base_menu_rate int
+  is_verified boolean [default: false]
+  verified_at timestamp
+  verification_document varchar(255)
+  rejected_at timestamp
+  rejection_reason varchar(500)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table chef_store_hires {
+  id bigint [pk, increment]
+  chef_profile_id bigint
+  store_id bigint
+  hired_by bigint
+  hired_at timestamp
+  is_active boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table chef_store {
+  id bigint [pk, increment]
+  chef_id bigint
+  store_id bigint
+  status varchar(255) [default: 'pending']
+  start_date date
+  end_date date
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table chef_skills {
+  id bigint [pk, increment]
+  chef_id bigint
+  skill_name varchar(255)
+  proficiency_level int [default: 3]
+  description text
+  certified_year year
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table chef_diplomas {
+  id bigint [pk, increment]
+  chef_id bigint
+  diploma_name varchar(255)
+  issuing_institution varchar(255)
+  issue_date year
+  diploma_file varchar(255)
+  verified boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table chef_images {
+  id bigint [pk, increment]
+  chef_profile_id bigint
+  chef_id bigint
+  path varchar(255)
+  image_path varchar(255)
+  caption varchar(255)
+  image_type varchar(255) [default: 'portfolio']
+  description text
+  is_featured boolean [default: false]
+  sort_order int [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table chef_work_history {
+  id bigint [pk, increment]
+  chef_id bigint
+  restaurant_name varchar(255)
+  position varchar(255)
+  start_year year
+  end_year year
+  description text
+  location varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== RESERVATIONS ========================
+
+Table reservations {
+  id bigint [pk, increment]
+  store_reservation_number int  
+  store_id bigint
+  client_id bigint
+  name varchar(255)
+  email varchar(255)
+  phone varchar(255)
+  party_size tinyint  
+  reservation_date date
+  reservation_time time
+  notes text
+  special_requests text
+  status varchar(255) [default: 'pending']
+  cancellation_reason varchar(255)
+  cancelled_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table reservation_settings {
+  id bigint [pk, increment]
+  store_id bigint
+  enabled boolean [default: false]
+  auto_confirm boolean [default: false]
+  manual_confirm boolean [default: true]
+  duration_minutes int   [default: 60]
+  slot_interval_minutes int   [default: 30]
+  min_advance_hours int   [default: 1]
+  max_booking_days int   [default: 30]
+  min_party_size int   [default: 1]
+  max_party_size int   [default: 20]
+  allow_notes boolean [default: true]
+  allow_special_requests boolean [default: true]
+  allow_cancellation boolean [default: true]
+  cancellation_deadline_hours int   [default: 2]
+  reminder_24h boolean [default: true]
+  reminder_2h boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table reservation_schedules {
+  id bigint [pk, increment]
+  store_id bigint
+  day_of_week tinyint  
+  enabled boolean [default: true]
+  open_time time
+  close_time time
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table restaurant_tables {
+  id bigint [pk, increment]
+  store_id bigint
+  name varchar(255)
+  table_number int  
+  capacity int  
+  min_capacity int   [default: 1]
+  location varchar(255)
+  description text
+  status varchar(255) [default: 'available']
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== CLIENT TRUST ========================
+
+Table client_bans {
+  id bigint [pk, increment]
+  store_id bigint
+  client_id bigint
+  reason varchar(255)
+  banned_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table client_reports {
+  id bigint [pk, increment]
+  store_id bigint
+  client_id bigint
+  reporter_id bigint
+  reason varchar(255)
+  description text
+  status varchar(255) [default: 'pending']
+  admin_reply text
+  resolved_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table client_trust_scores {
+  id bigint [pk, increment]
+  client_id bigint
+  store_id bigint
+  score tinyint   [default: 50]
+  completed_orders int   [default: 0]
+  cancelled_orders int   [default: 0]
+  avg_rating_given decimal(3,2) [default: 0]
+  total_complaints int   [default: 0]
+  total_reports_against int   [default: 0]
+  last_calculated_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table user_bans {
+  id bigint [pk, increment]
+  user_id bigint
+  banned_by bigint
+  reason varchar(255)
+  banned_at timestamp
+  unbanned_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== PHONE VERIFICATION ========================
+
+Table phone_verification_codes {
+  id bigint [pk, increment]
+  verifiable_type varchar(255)
+  verifiable_id bigint
+  phone varchar(30)
+  code varchar(6)
+  expires_at timestamp
+  verified_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== TEMPLATES & THEME ========================
+
+Table templates {
+  id bigint [pk, increment]
+  name varchar(255)
+  slug varchar(255) [unique]
+  description text
+  category varchar(255)
+  thumbnail varchar(255)
+  component_path varchar(255)
+  sort_order smallint [default: 0]
+  is_active boolean [default: true]
+  status varchar(20) [default: 'active']
+  html_content longtext
+  css_content longtext
+  has_react_component boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table template_blocks {
+  id bigint [pk, increment]
+  template_id bigint
+  type varchar(255)
+  label varchar(255)
+  description text
+  category varchar(255) [default: 'general']
+  sort_order smallint [default: 0]
+  config_schema json
+  default_config json
+  is_required boolean [default: false]
+  is_active boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table theme_presets {
+  id bigint [pk, increment]
+  template_id bigint
+  name varchar(255)
+  description text
+  css_vars json
+  colors json
+  is_default boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== BRANCHES ========================
+
+Table store_branches {
+  id bigint [pk, increment]
+  store_id bigint
+  name varchar(255)
+  alias varchar(255) [unique]
+  description text
+  template_slug varchar(50)
+  theme_preset_id bigint
+  cover_image varchar(255)
+  logo_path varchar(255)
+  document_path varchar(255)
+  opening_hours text
+  wilaya varchar(255)
+  daira varchar(255)
+  commune varchar(255)
+  address varchar(255)
+  latitude decimal(11,7)
+  longitude decimal(11,7)
+  email varchar(255)
+  phone varchar(255)
+  is_active boolean [default: true]
+  break_start timestamp
+  break_end timestamp
+  break_note text
+  avg_prep_time int [default: 25]
+  delivery_zone_radius decimal(8,2) [default: 5.00]
+  base_delivery_fee int [default: 200]
+  avg_delivery_time_per_km int [default: 3]
+  ordering_enabled boolean [default: true]
+  is_paused boolean [default: false]
+  pause_note varchar(255)
+  allows_pre_orders boolean [default: false]
+  pre_order_lead_time_hours int   [default: 1]
+  order_prefix varchar(20)
+  order_suffix varchar(20)
+  order_padding tinyint   [default: 4]
+  order_start_number int   [default: 1]
+  cover_image_id bigint
+  main_image_id bigint
+  is_subscription_managed boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table branch_user {
+  id bigint [pk, increment]
+  branch_id bigint
+  user_id bigint
+  role varchar(255) [default: 'staff']
+  permissions json
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table branch_templates {
+  id bigint [pk, increment]
+  branch_id bigint
+  template_id bigint
+  is_synced boolean [default: false]
+  source_branch_id bigint
+  source_template_id bigint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table branch_customizations {
+  id bigint [pk, increment]
+  branch_id bigint
+  custom_settings json
+  custom_theme_colors json
+  custom_logo_path varchar(255)
+  custom_cover_image varchar(255)
+  custom_description text
+  custom_template_slug varchar(50)
+  custom_theme_preset_id bigint
+  is_customized boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== PAGE BUILDER ========================
+
+Table page_assets {
+  id bigint [pk, increment]
+  store_id bigint
+  user_id bigint
+  original_name varchar(255)
+  path varchar(255)
+  url varchar(255)
+  mime_type varchar(255)
+  size_bytes int  
+  width int  
+  height int  
+  disk varchar(255) [default: 'public']
+   asset_group varchar(255) [default: 'general']
+  metadata json
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table saved_sections {
+  id bigint [pk, increment]
+  store_id bigint
+  name varchar(255)
+  html longtext
+  css longtext
+  thumbnail varchar(255)
+  sort_order int [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table component_configs {
+  id bigint [pk, increment]
+  store_id bigint
+  theme_id bigint
+  block_type varchar(255)
+  component_id varchar(255)
+  config json
+  defaults json
+  is_active boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table page_versions {
+  id bigint [pk, increment]
+  entity_type varchar(20) [default: 'store']
+  entity_id bigint
+  slug varchar(100) [default: '']
+  version int
+  html longtext
+  css longtext
+  js longtext
+  grapes_data json
+  meta json
+  created_by bigint
+  created_at timestamp
+}
+
+// ======================== SUBSCRIPTIONS ========================
+
+Table plans {
+  id bigint [pk, increment]
+  name varchar(255)
+  slug varchar(255) [unique]
+  description text
+  is_active boolean [default: true]
+  sort_order int [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table plan_features {
+  id bigint [pk, increment]
+  code varchar(255) [unique]
+  name varchar(255)
+  description text
+  icon varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table plan_feature_assignments {
+  id bigint [pk, increment]
+  plan_id bigint
+  plan_feature_id bigint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table plan_tiers {
+  id bigint [pk, increment]
+  plan_id bigint
+  name varchar(255)
+  min_orders int [default: 0]
+  max_orders int
+  monthly_price decimal(10,2) [default: 0]
+  is_active boolean [default: true]
+  sort_order int [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table plan_duration_offers {
+  id bigint [pk, increment]
+  plan_tier_id bigint
+  months int
+  discount_percent decimal(5,2) [default: 0]
+  discount_label varchar(255)
+  is_popular boolean [default: false]
+  is_active boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table store_subscriptions {
+  id bigint [pk, increment]
+  store_id bigint [unique]
+  plan_tier_id bigint
+  plan_duration_offer_id bigint
+  status varchar(255) [default: 'trialing']
+  trial_ends_at datetime
+  start_date datetime
+  end_date datetime
+  cancelled_at datetime
+  monthly_price_snapshot decimal(10,2) [default: 0]
+  current_period_orders int [default: 0]
+  auto_upgrade boolean [default: true]
+  last_tier_check_at datetime
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table billing_invoices {
+  id bigint [pk, increment]
+  store_subscription_id bigint
+  invoice_number varchar(255) [unique]
+  period_start datetime
+  period_end datetime
+  total_orders int [default: 0]
+  tier_applied varchar(255)
+  plan_name varchar(255)
+  base_amount decimal(10,2) [default: 0]
+  discount_amount decimal(10,2) [default: 0]
+  tax_amount decimal(10,2) [default: 0]
+  total_amount decimal(10,2) [default: 0]
+  currency varchar(10) [default: 'DZD']
+  status varchar(255) [default: 'pending']
+  payment_method_type varchar(255)
+  gateway_transaction_id varchar(255)
+  paid_at datetime
+  paid_by_user_id bigint
+  notes text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table payment_gateways {
+  id bigint [pk, increment]
+  code varchar(255) [unique]
+  name varchar(255)
+  is_active boolean [default: true]
+  config json
+  supported_currencies json
+  sort_order int [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table payment_methods {
+  id bigint [pk, increment]
+  store_id bigint
+  gateway_id bigint
+  type varchar(255)
+  details json
+  is_default boolean [default: false]
+  is_verified boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== AI ========================
+
+Table ai_generation_jobs {
+  id bigint [pk, increment]
+  store_id bigint
+  user_id bigint
+  type varchar(255)
+  input_payload json
+  output_payload json
+  status varchar(255) [default: 'pending']
+  error_message text
+  queue_job_id varchar(255)
+  completed_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ======================== RELATIONSHIPS ========================
+
+Ref: dairas.wilaya_id > wilayas.id
+Ref: communes.daira_id > dairas.id
+Ref: communes.wilaya_id > wilayas.id
+
+Ref: stores.owner_id > users.id
+Ref: stores.cover_image_id > store_images.id
+Ref: stores.main_image_id > store_images.id
+
+Ref: store_images.store_id > stores.id
+Ref: store_social_links.store_id > stores.id
+Ref: store_domains.store_id > stores.id
+Ref: store_payouts.store_id > stores.id
+Ref: store_payouts.approved_by > users.id
+Ref: store_phones.store_id > stores.id
+Ref: store_staff.store_id > stores.id
+Ref: store_staff.user_id > users.id
+Ref: store_badge.store_id > stores.id
+Ref: store_badge.badge_id > badges.id
+Ref: store_type_category.store_id > stores.id
+Ref: store_type_category.store_type_category_id > store_type_categories.id
+Ref: zones.store_id > stores.id
+Ref: banners.store_id > stores.id
+Ref: offers.store_id > stores.id
+Ref: posts.store_id > stores.id
+
+Ref: foods.store_id > stores.id
+Ref: foods.category_id > categories.id
+Ref: food_images.food_id > foods.id
+Ref: food_offer_items.parent_food_id > foods.id
+Ref: food_offer_items.child_food_id > foods.id
+Ref: category_food.food_id > foods.id
+Ref: category_food.category_id > categories.id
+
+Ref: promo_codes.store_id > stores.id
+
+Ref: orders.client_id > users.id
+Ref: orders.store_id > stores.id
+Ref: orders.delivery_id > users.id
+Ref: orders.assigned_chef_id > users.id
+Ref: orders.promo_code_id > promo_codes.id
+Ref: order_items.order_id > orders.id
+Ref: order_items.food_id > foods.id
+
+Ref: reviews.client_id > users.id
+Ref: reviews.store_id > stores.id
+Ref: review_flags.review_id > reviews.id
+Ref: review_flags.user_id > users.id
+Ref: complaints.client_id > users.id
+Ref: complaints.store_id > stores.id
+Ref: complaints.order_id > orders.id
+Ref: complaints.food_id > foods.id
+
+Ref: favorites.user_id > users.id
+Ref: favorites.store_id > stores.id
+Ref: favorites.food_id > foods.id
+
+Ref: delivery_profiles.user_id > users.id
+Ref: delivery_profiles.current_tier_id > delivery_pricing_tiers.id
+Ref: favorite_deliveries.owner_id > users.id
+Ref: favorite_deliveries.delivery_user_id > users.id
+Ref: delivery_profile_areas.delivery_profile_id > delivery_profiles.id
+Ref: delivery_profile_areas.wilaya_id > wilayas.id
+Ref: delivery_profile_areas.daira_id > dairas.id
+Ref: delivery_profile_areas.commune_id > communes.id
+Ref: delivery_subscriptions.delivery_profile_id > delivery_profiles.id
+Ref: delivery_subscriptions.tier_id > delivery_pricing_tiers.id
+Ref: delivery_subscriptions.duration_offer_id > plan_duration_offers.id
+
+Ref: chef_profiles.user_id > users.id
+Ref: chef_store_hires.chef_profile_id > chef_profiles.id
+Ref: chef_store_hires.store_id > stores.id
+Ref: chef_store_hires.hired_by > users.id
+Ref: chef_store.chef_id > users.id
+Ref: chef_store.store_id > stores.id
+Ref: chef_skills.chef_id > users.id
+Ref: chef_diplomas.chef_id > users.id
+Ref: chef_images.chef_profile_id > chef_profiles.id
+Ref: chef_images.chef_id > users.id
+Ref: chef_work_history.chef_id > users.id
+
+Ref: reservations.store_id > stores.id
+Ref: reservations.client_id > users.id
+Ref: reservation_settings.store_id > stores.id
+Ref: reservation_schedules.store_id > stores.id
+Ref: restaurant_tables.store_id > stores.id
+
+Ref: client_bans.store_id > stores.id
+Ref: client_bans.client_id > users.id
+Ref: client_reports.store_id > stores.id
+Ref: client_reports.client_id > users.id
+Ref: client_reports.reporter_id > users.id
+Ref: client_trust_scores.client_id > users.id
+Ref: client_trust_scores.store_id > stores.id
+Ref: user_bans.user_id > users.id
+Ref: user_bans.banned_by > users.id
+
+Ref: sessions.user_id > users.id
+
+Ref: template_blocks.template_id > templates.id
+Ref: theme_presets.template_id > templates.id
+
+Ref: store_branches.store_id > stores.id
+Ref: branch_user.branch_id > store_branches.id
+Ref: branch_user.user_id > users.id
+Ref: branch_templates.branch_id > store_branches.id
+Ref: branch_templates.template_id > templates.id
+Ref: branch_templates.source_branch_id > store_branches.id
+Ref: branch_templates.source_template_id > templates.id
+Ref: branch_customizations.branch_id > store_branches.id
+
+Ref: page_assets.store_id > stores.id
+Ref: page_assets.user_id > users.id
+Ref: saved_sections.store_id > stores.id
+Ref: component_configs.store_id > stores.id
+Ref: page_versions.created_by > users.id
+
+Ref: plan_feature_assignments.plan_id > plans.id
+Ref: plan_feature_assignments.plan_feature_id > plan_features.id
+Ref: plan_tiers.plan_id > plans.id
+Ref: plan_duration_offers.plan_tier_id > plan_tiers.id
+Ref: store_subscriptions.store_id > stores.id
+Ref: store_subscriptions.plan_tier_id > plan_tiers.id
+Ref: store_subscriptions.plan_duration_offer_id > plan_duration_offers.id
+Ref: billing_invoices.store_subscription_id > store_subscriptions.id
+Ref: billing_invoices.paid_by_user_id > users.id
+Ref: payment_methods.store_id > stores.id
+Ref: payment_methods.gateway_id > payment_gateways.id
+
+Ref: ai_generation_jobs.store_id > stores.id
+Ref: ai_generation_jobs.user_id > users.id

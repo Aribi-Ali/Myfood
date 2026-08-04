@@ -6,6 +6,8 @@ import { useLanguage } from '@/contexts/language'
 import { api } from '@/lib/api-client'
 import { Upload, Trash2, Copy, Check } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { Dropzone } from '@/components/dropzone'
+import { getImageUrl } from '@/lib/utils'
 
 interface Asset {
   id: number
@@ -24,6 +26,12 @@ interface AssetsResponse {
   meta: { total: number }
 }
 
+interface GalleryImage {
+  id: number
+  path: string
+  created_at: string
+}
+
 export default function MediaPage() {
   const { user, loading } = useAuth()
   const { t } = useLanguage()
@@ -32,6 +40,8 @@ export default function MediaPage() {
   const [fetching, setFetching] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [copiedId, setCopiedId] = useState<number | null>(null)
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([])
+  const [galleryError, setGalleryError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
   const fetchAssets = useCallback(async () => {
@@ -47,6 +57,9 @@ export default function MediaPage() {
     if (loading) return
     if (!user) { router.push('/login'); return }
     fetchAssets()
+    api.get<{ data: { data: GalleryImage[] } }>('/owner/gallery')
+      .then(res => setGalleryImages(res.data?.data || []))
+      .catch(() => {})
   }, [user, loading, router, fetchAssets])
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,6 +88,26 @@ export default function MediaPage() {
       setCopiedId(id)
       setTimeout(() => setCopiedId(null), 2000)
     } catch { /* ignore */ }
+  }
+
+  const handleGalleryUpload = async (file: File) => {
+    setGalleryError('')
+    try {
+      const res = await api.upload<{ data: GalleryImage }>('/owner/gallery', file, 'image')
+      setGalleryImages((prev) => [res.data, ...prev])
+    } catch (err) {
+      setGalleryError(err instanceof Error ? err.message : t('upload_failed'))
+    }
+  }
+
+  const handleGalleryDelete = async (id: number) => {
+    if (!confirm(t('delete_confirm_image'))) return
+    try {
+      await api.delete(`/owner/gallery/${id}`)
+      setGalleryImages((prev) => prev.filter((img) => img.id !== id))
+    } catch (err) {
+      setGalleryError(err instanceof Error ? err.message : t('delete_failed'))
+    }
   }
 
   function formatSize(bytes: number): string {
@@ -141,6 +174,45 @@ export default function MediaPage() {
                   title={t('delete_image')}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="pt-4 border-t border-stone-200 dark:border-slate-700">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">{t('gallery')}</h2>
+        <p className="text-gray-500 text-sm">{t('store_images')}</p>
+      </div>
+
+      <Dropzone onUpload={handleGalleryUpload} />
+
+      {galleryError && (
+        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-400">{galleryError}</div>
+      )}
+
+      {galleryImages.length === 0 ? (
+        <div className="text-center py-16 text-stone-400">
+          <div className="text-5xl mb-4">🖼️</div>
+          <p className="text-sm font-bold uppercase tracking-wider">{t('no_images_yet')}</p>
+          <p className="text-xs mt-2">{t('upload_first_image')}</p>
+        </div>
+      ) : (
+        <div className="columns-2 gap-4 sm:columns-3 lg:columns-4">
+          {galleryImages.map((img) => (
+            <div key={img.id} className="group relative mb-4 break-inside-avoid">
+              <img
+                src={getImageUrl(img.path) || ''}
+                alt={t('gallery')}
+                className="w-full rounded-xl object-cover"
+              />
+              <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                <button
+                  onClick={() => handleGalleryDelete(img.id)}
+                  className="rounded-full bg-red-600 p-2 text-white hover:bg-red-700 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </div>

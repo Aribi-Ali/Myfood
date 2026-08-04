@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useRouter } from 'next/navigation'
+import { SettingsNav } from '@/components/settings-nav'
 import { CreditCard, CheckCircle, XCircle, AlertTriangle, Calendar, FileText, TrendingUp, Package } from 'lucide-react'
 import type { StoreSubscriptionData } from '@/types/api'
 
@@ -26,8 +27,8 @@ export default function SubscriptionPage() {
 
   const fetchSubscription = useCallback(() => {
     setLoading(true)
-    api.get<{ data: StoreSubscriptionData }>('/owner/subscription')
-      .then(res => setSubscription(res.data))
+    api.get<{ data: { subscription: StoreSubscriptionData | null } }>('/owner/subscription')
+      .then(res => setSubscription(res.data?.subscription ?? null))
       .catch(err => setError(err instanceof Error ? err.message : 'Failed to load subscription'))
       .finally(() => setLoading(false))
   }, [])
@@ -92,7 +93,9 @@ export default function SubscriptionPage() {
   const usagePercent = maxOrders ? Math.min((orderUsage / maxOrders) * 100, 100) : 0
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col min-h-0 lg:flex-row lg:gap-6">
+      <SettingsNav />
+      <div className="flex-1 min-w-0 min-h-0 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Subscription</h1>
         <div className="flex gap-2">
@@ -205,6 +208,7 @@ export default function SubscriptionPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

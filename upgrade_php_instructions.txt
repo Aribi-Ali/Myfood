@@ -1,0 +1,26 @@
+PHP Upgrade Instructions for Laravel Reverb Server
+
+1. Download PHP 8.2 or higher:
+   - Go to https://windows.php.net/download/
+   - Download the Thread Safe (TS) version for Windows
+   - Look for a version like php-8.2.x-ts-x64.zip or php-8.3.x-ts-x64.zip
+
+2. Install PHP:
+   - Extract the downloaded zip file to a directory like C:\php82
+   - Make sure to preserve the folder structure
+
+3. Update your system PATH:
+   - Open System Properties → Advanced → Environment Variables
+   - Find the PATH variable and add your new PHP directory (e.g., C:\php82)
+   - Remove any old PHP paths from the PATH variable
+
+4. Restart your command prompt/terminal
+
+5. Verify the installation:
+   - Open a new terminal/command prompt
+   - Run: php -v
+   - You should see PHP 8.2 or higher
+
+6. Install Composer dependencies:
+   - Navigate to your reverb-server directory
+   - Run: composer install

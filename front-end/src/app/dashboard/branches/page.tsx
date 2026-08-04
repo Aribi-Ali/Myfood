@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth'
 import { useLanguage } from '@/contexts/language'
 import { api } from '@/lib/api-client'
+import { CitySearchSelect } from '@/components/city-search-select'
 import {
-  Plus, Pencil, Trash2, Users, Loader2, Store, X, Check, FileText,
+  Plus, Pencil, Trash2, Users, Loader2, Store, X, Check, FileText, Paintbrush,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -83,6 +84,9 @@ export default function BranchesPage() {
   const [form, setForm] = useState({ ...emptyForm })
   const [formError, setFormError] = useState('')
   const [saving, setSaving] = useState(false)
+  
+  // Track city metadata separately
+  const [cityMetadata, setCityMetadata] = useState<{ wilaya_id: number; daira_id: number; commune_id: number } | null>(null)
 
   // ── Manage Users modal ─────────────────────────────────────────────────────
   const [showUsersModal, setShowUsersModal] = useState(false)
@@ -111,7 +115,7 @@ export default function BranchesPage() {
     setFetching(true)
     setError('')
     try {
-      const res = await api.get<{ data: Branch[] }>(`/stores/${storeId}/branches`)
+      const res = await api.get<{ data: Branch[] }>(`/owner/stores/${storeId}/branches`)
       setBranches(res.data || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load branches')
@@ -146,6 +150,11 @@ export default function BranchesPage() {
       daira: b.daira || '',
       commune: b.commune || '',
     })
+    setCityMetadata({
+      wilaya_id: 0,
+      daira_id: 0,
+      commune_id: 0
+    })
     setFormError('')
     setShowForm(true)
   }
@@ -169,10 +178,22 @@ export default function BranchesPage() {
     try {
       let saved: Branch
       if (editingId) {
-        const res = await api.put<{ data: Branch }>(`/branches/${editingId}`, form)
+        const res = await api.put<{ data: Branch }>(`/branches/${editingId}`, {
+          ...form,
+          // Include city metadata if available
+          wilaya_id: cityMetadata?.wilaya_id || null,
+          daira_id: cityMetadata?.daira_id || null, 
+          commune_id: cityMetadata?.commune_id || null,
+        })
         saved = res.data
       } else {
-        const res = await api.post<{ data: Branch }>(`/stores/${storeId}/branches`, form)
+        const res = await api.post<{ data: Branch }>(`/stores/${storeId}/branches`, {
+          ...form,
+          // Include city metadata if available
+          wilaya_id: cityMetadata?.wilaya_id || null,
+          daira_id: cityMetadata?.daira_id || null, 
+          commune_id: cityMetadata?.commune_id || null,
+        })
         saved = res.data
       }
       setBranches((prev) => {
@@ -214,7 +235,7 @@ export default function BranchesPage() {
     setUsersBranch(null)
     setShowUsersModal(true)
     try {
-      const res = await api.get<{ data: Branch }>(`/branches/${b.id}`)
+      const res = await api.get<{ data: Branch }>(`/owner/branches/${b.id}`)
       setUsersBranch(res.data)
     } catch {
       setUsersBranch(b)
@@ -239,7 +260,7 @@ export default function BranchesPage() {
         role: assignUserRole,
       })
       // Re-fetch to get updated list
-      const res = await api.get<{ data: Branch }>(`/branches/${usersBranch.id}`)
+      const res = await api.get<{ data: Branch }>(`/owner/branches/${usersBranch.id}`)
       setUsersBranch(res.data)
       setAssignUserId('')
       setAssignUserRole('staff')
@@ -254,7 +275,7 @@ export default function BranchesPage() {
     if (!confirm('Remove this user from the branch?')) return
     try {
       await api.delete(`/branches/${usersBranch.id}/users/${userId}`)
-      const res = await api.get<{ data: Branch }>(`/branches/${usersBranch.id}`)
+      const res = await api.get<{ data: Branch }>(`/owner/branches/${usersBranch.id}`)
       setUsersBranch(res.data)
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to remove user')
@@ -401,6 +422,13 @@ export default function BranchesPage() {
                     Edit
                   </button>
                   <button
+                    onClick={() => router.push(`/dashboard/branches/${b.id}/customize`)}
+                    className="flex-1 rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-600 transition-colors hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/30"
+                  >
+                    <Paintbrush className="mr-1 inline-block h-3 w-3" />
+                    Customize
+                  </button>
+                  <button
                     onClick={() => router.push(`/dashboard/page-builder?branch_id=${b.id}`)}
                     className="flex-1 rounded-lg bg-purple-50 px-2.5 py-1.5 text-xs font-semibold text-purple-600 transition-colors hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:hover:bg-purple-900/30"
                   >
@@ -521,45 +549,27 @@ export default function BranchesPage() {
                   />
                 </div>
 
-                {/* Wilaya */}
+                {/* City */}
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                    Wilaya
+                    City
                   </label>
-                  <input
-                    type="text"
-                    value={form.wilaya}
-                    onChange={(e) => updateForm('wilaya', e.target.value)}
-                    placeholder="e.g. Alger"
-                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-orange-400 focus:ring-2 focus:ring-orange-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-orange-500 dark:focus:ring-orange-800"
-                  />
-                </div>
-
-                {/* Daira */}
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                    Daira
-                  </label>
-                  <input
-                    type="text"
-                    value={form.daira}
-                    onChange={(e) => updateForm('daira', e.target.value)}
-                    placeholder="e.g. Sidi M'Hamed"
-                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-orange-400 focus:ring-2 focus:ring-orange-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-orange-500 dark:focus:ring-orange-800"
-                  />
-                </div>
-
-                {/* Commune */}
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                    Commune
-                  </label>
-                  <input
-                    type="text"
-                    value={form.commune}
-                    onChange={(e) => updateForm('commune', e.target.value)}
-                    placeholder="e.g. Hydra"
-                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-orange-400 focus:ring-2 focus:ring-orange-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-orange-500 dark:focus:ring-orange-800"
+                  <CitySearchSelect
+                    value={form.wilaya || ''}
+                    onChange={(val, meta) => {
+                      if (meta) {
+                        // When selecting a city, we set wilaya from the label and store metadata
+                        updateForm('wilaya', val);
+                        setCityMetadata({
+                          wilaya_id: meta.wilaya_id,
+                          daira_id: meta.daira_id,
+                          commune_id: meta.commune_id
+                        });
+                      } else {
+                        updateForm('wilaya', val);
+                        setCityMetadata(null);
+                      }
+                    }}
                   />
                 </div>
               </div>

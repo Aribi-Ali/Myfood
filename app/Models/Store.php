@@ -52,6 +52,7 @@ class Store extends Model
         'order_suffix',
         'order_padding',
         'order_start_number',
+        'main_branch_id',
     ];
 
     protected $casts = [
@@ -81,6 +82,14 @@ class Store extends Model
     public function defaultBranch()
     {
         return $this->hasOne(StoreBranch::class)->orderBy('id');
+    }
+    
+    /**
+     * Get the main branch of this store
+     */
+    public function mainBranch()
+    {
+        return $this->hasOne(StoreBranch::class, 'id', 'main_branch_id');
     }
 
     public function foods()

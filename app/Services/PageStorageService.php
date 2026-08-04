@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\PageVersion;
 use Illuminate\Support\Facades\File;
 
 class PageStorageService
@@ -22,6 +23,8 @@ class PageStorageService
 
     public function save(int $entityId, string $html, string $css, ?array $grapesData = null, string $slug = '', ?string $js = null, string $entityType = 'store'): void
     {
+        $this->snapshotBeforeOverwrite($entityId, $slug, $entityType, $html, $css, $js, $grapesData);
+
         $path = $this->pagePath($entityId, $slug, $entityType);
         File::ensureDirectoryExists($path);
         File::put("{$path}/index.html", $html);
@@ -111,5 +114,88 @@ class PageStorageService
         $path = $this->pagePath($entityId, $slug, $entityType);
         File::ensureDirectoryExists($path);
         File::put("{$path}/meta.json", json_encode($meta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+
+    // ─── Version history (Shopify-style rollback) ───────────────────────────
+
+    /**
+     * Before overwriting a page, snapshot the current content so edits are
+     * recoverable. Skips when the page doesn't exist yet or nothing changed.
+     */
+    private function snapshotBeforeOverwrite(int $entityId, string $slug, string $entityType, string $newHtml, ?string $newCss, ?string $newJs, ?array $newGrapes): void
+    {
+        $current = $this->get($entityId, $slug, $entityType);
+        if (!$current) {
+            return;
+        }
+
+        $currentHtml = $current['html'] ?? '';
+        $currentCss = $current['css'] ?? '';
+        $currentJs = $current['js'] ?? '';
+        $currentGrapes = $current['grapes_data'] ? json_decode($current['grapes_data'], true) : null;
+
+        $changed = $currentHtml !== $newHtml
+            || $currentCss !== ($newCss ?? '')
+            || $currentJs !== ($newJs ?? '')
+            || json_encode($currentGrapes) !== json_encode($newGrapes);
+
+        if (!$changed) {
+            return;
+        }
+
+        $nextVersion = PageVersion::where('entity_type', $entityType)
+            ->where('entity_id', $entityId)
+            ->where('slug', $slug)
+            ->max('version') + 1;
+
+        PageVersion::create([
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
+            'slug' => $slug,
+            'version' => $nextVersion,
+            'html' => $currentHtml,
+            'css' => $currentCss,
+            'js' => $currentJs ?: null,
+            'grapes_data' => $currentGrapes,
+        ]);
+    }
+
+    public function versions(int $entityId, string $slug = '', string $entityType = 'store'): \Illuminate\Support\Collection
+    {
+        return PageVersion::where('entity_type', $entityType)
+            ->where('entity_id', $entityId)
+            ->where('slug', $slug)
+            ->orderByDesc('version')
+            ->get(['id', 'version', 'created_at', 'created_by']);
+    }
+
+    /**
+     * Roll a page back to a previous snapshot. The current state is snapshotted
+     * first (so a restore itself is undoable), then the snapshot is written.
+     * Works even if the page was deleted since the snapshot was taken.
+     */
+    public function restore(int $entityId, string $slug, int $version, string $entityType = 'store'): bool
+    {
+        $snapshot = PageVersion::where('entity_type', $entityType)
+            ->where('entity_id', $entityId)
+            ->where('slug', $slug)
+            ->where('version', $version)
+            ->first();
+
+        if (!$snapshot) {
+            return false;
+        }
+
+        $this->save(
+            $entityId,
+            $snapshot->html,
+            $snapshot->css ?? '',
+            $snapshot->grapes_data,
+            $slug,
+            $snapshot->js,
+            $entityType,
+        );
+
+        return true;
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreFoodRequest;
 use App\Models\Food;
 use App\Models\Category;
+use App\Http\Resources\FoodResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -40,6 +41,14 @@ class OwnerFoodController extends Controller
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('foods', 'public');
+        }
+
+        // Handle today's special food fields
+        if (isset($data['is_today_special']) && $data['is_today_special']) {
+            // Set expiration to end of day by default
+            $data['today_special_expires_at'] = now()->endOfDay();
+        } else {
+            $data['today_special_expires_at'] = null;
         }
 
         $categoryIds = $data['category_ids'] ?? [];
@@ -98,6 +107,16 @@ class OwnerFoodController extends Controller
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('foods', 'public');
+        }
+
+        // Handle today's special food fields
+        if (isset($data['is_today_special']) && $data['is_today_special']) {
+            // Set expiration to end of day by default if not set
+            if (!$data['today_special_expires_at']) {
+                $data['today_special_expires_at'] = now()->endOfDay();
+            }
+        } else {
+            $data['today_special_expires_at'] = null;
         }
 
         $categoryIds = $data['category_ids'] ?? null;
@@ -163,5 +182,73 @@ class OwnerFoodController extends Controller
         });
 
         return response()->json(['data' => $categories]);
+    }
+
+    /**
+     * Get today's special foods for the store
+     */
+    public function getTodaySpecialFoods(): JsonResponse
+    {
+        $store = Auth::user()->store;
+        if (!$store) {
+            return $this->error('No store found', 403);
+        }
+
+        $foods = Food::where('store_id', $store->id)
+            ->where('is_today_special', true)
+            ->where('is_available', true)
+            ->where('today_special_expires_at', '>', now())
+            ->orderBy('name')
+            ->get();
+
+        return $this->success(FoodResource::collection($foods));
+    }
+
+    /**
+     * Set a food item as today's special
+     */
+    public function setTodaySpecial(int $id): JsonResponse
+    {
+        $store = Auth::user()->store;
+        if (!$store) {
+            return $this->error('No store found', 403);
+        }
+
+        $food = Food::where('id', $id)->where('store_id', $store->id)->first();
+        if (!$food) {
+            return $this->error('Food not found', 404);
+        }
+
+        // Set as today's special with end of day expiration
+        $food->update([
+            'is_today_special' => true,
+            'today_special_expires_at' => now()->endOfDay()
+        ]);
+
+        return $this->success($food->load('categories'));
+    }
+
+    /**
+     * Remove a food item from today's special list
+     */
+    public function unsetTodaySpecial(int $id): JsonResponse
+    {
+        $store = Auth::user()->store;
+        if (!$store) {
+            return $this->error('No store found', 403);
+        }
+
+        $food = Food::where('id', $id)->where('store_id', $store->id)->first();
+        if (!$food) {
+            return $this->error('Food not found', 404);
+        }
+
+        // Remove from today's special
+        $food->update([
+            'is_today_special' => false,
+            'today_special_expires_at' => null
+        ]);
+
+        return $this->success($food->load('categories'));
     }
 }

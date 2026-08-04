@@ -28,6 +28,8 @@ class Food extends Model
         'new_price_eur',
         'is_available',
         'is_offer',
+        'is_today_special',
+        'today_special_expires_at',
         'ingredients',
         'cooking_time',
         'bought_count',

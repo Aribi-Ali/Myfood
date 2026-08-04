@@ -19,6 +19,11 @@ interface StoreSettings {
   phones?: { id: number; phone: string; is_primary: boolean }[]
   email: string | null
   address: string | null
+  latitude: number | null
+  longitude: number | null
+  wilaya: string | null
+  daira: string | null
+  commune: string | null
   logo: string | null
   cover: string | null
   opening_hours: any
@@ -83,6 +88,11 @@ export default function GeneralSettingsPage() {
         phones: validPhones.length > 1 ? validPhones : undefined,
         email: settings.email,
         address: settings.address,
+        latitude: settings.latitude,
+        longitude: settings.longitude,
+        wilaya: settings.wilaya,
+        daira: settings.daira,
+        commune: settings.commune,
       })
       setSettings(res.data)
       setSuccess('Settings saved.')
@@ -166,6 +176,17 @@ export default function GeneralSettingsPage() {
 
             <Input id="email" label={t('email')} type="email" value={settings.email || ''} onChange={(e) => updateField('email', e.target.value)} />
             <Input id="address" label={t('address')} value={settings.address || ''} onChange={(e) => updateField('address', e.target.value)} />
+
+            <div className="grid grid-cols-3 gap-3">
+              <Input id="wilaya" label={t('wilaya')} value={settings.wilaya || ''} onChange={(e) => updateField('wilaya', e.target.value)} />
+              <Input id="daira" label={t('daira')} value={settings.daira || ''} onChange={(e) => updateField('daira', e.target.value)} />
+              <Input id="commune" label={t('commune')} value={settings.commune || ''} onChange={(e) => updateField('commune', e.target.value)} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Input id="latitude" label={t('latitude')} type="number" step="any" value={settings.latitude ?? ''} onChange={(e) => updateField('latitude', e.target.value ? Number(e.target.value) : null)} />
+              <Input id="longitude" label={t('longitude')} type="number" step="any" value={settings.longitude ?? ''} onChange={(e) => updateField('longitude', e.target.value ? Number(e.target.value) : null)} />
+            </div>
             <Button type="submit" disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t('save_changes')}

@@ -163,6 +163,10 @@ function PageBuilderInner({ initialData, initialSlug, pageSlug, entityType, enti
   const [jsModalOpen, setJsModalOpen] = useState(false)
   const [jsError, setJsError] = useState<string | null>(null)
   const [showUnleashConfirm, setShowUnleashConfirm] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [versions, setVersions] = useState<Array<{ id: number; version: number; created_at: string; created_by: number | null }>>([])
+  const [versionsLoading, setVersionsLoading] = useState(false)
+  const [restoring, setRestoring] = useState<number | null>(null)
   const [templateHtml, setTemplateHtml] = useState<string | null>(() => {
     const raw = (initialData as any).template?.html_content ?? null
     if (raw) {
@@ -460,6 +464,36 @@ function PageBuilderInner({ initialData, initialSlug, pageSlug, entityType, enti
     } catch (e) { console.error('Reset failed:', e) }
   }, [pageEndpoint, slug])
 
+  const handleOpenHistory = useCallback(async () => {
+    setVersionsLoading(true)
+    setHistoryOpen(true)
+    try {
+      const res = await api.get<{ versions: Array<{ id: number; version: number; created_at: string; created_by: number | null }> }>(`${pageEndpoint}/versions`)
+      setVersions(res.versions ?? [])
+    } catch (e) {
+      console.error('Failed to load versions', e)
+      setVersions([])
+    }
+    setVersionsLoading(false)
+  }, [pageEndpoint])
+
+  const handleRestoreVersion = useCallback(async (version: number) => {
+    setRestoring(version)
+    try {
+      await api.post(`${pageEndpoint}/restore`, { version })
+      toast(`Restored to version ${version}`, 'success')
+      // Remount the builder with fresh data (editor loads initial data on mount only)
+      const url = new URL(window.location.href)
+      url.searchParams.set('restored', String(Date.now()))
+      router.replace(url.pathname + url.search)
+    } catch (e) {
+      const msg = (e as Error)?.message ?? e
+      toast(`Restore failed: ${msg}`, 'error')
+      console.error('Restore failed:', e)
+    }
+    setRestoring(null)
+  }, [pageEndpoint, router])
+
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -738,6 +772,16 @@ function PageBuilderInner({ initialData, initialSlug, pageSlug, entityType, enti
             </svg>
             <span className="hidden xl:inline">JS</span>
           </button>
+          <button
+            onClick={handleOpenHistory}
+            className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-medium text-gray-400 hover:bg-white hover:text-blue-600 transition-all cursor-pointer"
+            title="Version history"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span className="hidden xl:inline">History</span>
+          </button>
         </div>
 
         {/* Shortcuts + Reset */}
@@ -971,6 +1015,73 @@ function PageBuilderInner({ initialData, initialSlug, pageSlug, entityType, enti
               >
                 Save JS
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Version history modal */}
+      {historyOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setHistoryOpen(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">Version History</h3>
+                  <p className="text-[11px] text-gray-400">Every saved edit is snapshotted — roll back anytime</p>
+                </div>
+              </div>
+              <button onClick={() => setHistoryOpen(false)} className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+              </button>
+            </div>
+            <div className="p-4 max-h-80 overflow-y-auto">
+              {versionsLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <div className="w-6 h-6 rounded-full border-2 border-blue-200 border-t-blue-600 animate-spin" />
+                </div>
+              ) : versions.length === 0 ? (
+                <div className="flex flex-col items-center gap-2 py-10 text-gray-300">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <span className="text-[11px] font-medium">No versions yet — save your page to create one</span>
+                </div>
+              ) : (
+                <ul className="space-y-2">
+                  {versions.map(v => (
+                    <li key={v.id} className="flex items-center justify-between rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/40 transition-colors px-4 py-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" />
+                          </svg>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-gray-800">Version {v.version}</p>
+                          <p className="text-[10px] text-gray-400">{timeAgo(new Date(v.created_at))}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRestoreVersion(v.version)}
+                        disabled={restoring !== null}
+                        className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-sm shadow-blue-200 cursor-pointer"
+                      >
+                        {restoring === v.version ? (
+                          <><svg className="animate-spin" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="32" /><path d="M12 2a10 10 0 0 1 10 10" /></svg> Restoring...</>
+                        ) : (
+                          <>Restore</>
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>

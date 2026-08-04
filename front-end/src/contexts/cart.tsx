@@ -5,6 +5,7 @@ import {
   useCallback, useEffect, type ReactNode,
 } from 'react'
 import { api } from '@/lib/api-client'
+import { useAuth } from '@/contexts/auth'
 import type { Food } from '@/types/api'
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -146,8 +147,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     persistCart(items)
   }, [items])
 
-  // On mount, seed from server cache if local cart is empty
+  // On mount, seed from server cache if local cart is empty (authed sessions only)
+  const { user, loading } = useAuth()
   useEffect(() => {
+    if (loading || !user) return
     api.get<{ data?: { cart?: ServerCartItem[] } }>('/client/cart')
       .then(res => {
         const cart = res?.data?.cart
@@ -157,7 +160,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch(() => {})
-  }, [])
+  }, [loading, user])
 
   const addToCart = useCallback(async (food: Food) => {
     try {

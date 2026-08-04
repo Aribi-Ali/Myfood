@@ -49,47 +49,36 @@ class StoreBranch extends Model
         ];
     }
 
+    /**
+     * Get the store that this branch belongs to
+     */
     public function store(): BelongsTo
     {
-        return $this->belongsTo(Store::class);
+        return $this->belongsTo(Store::class, 'store_id');
     }
-
-    public function assignedUsers(): BelongsToMany
+    
+    /**
+     * Get the branch template relationship
+     */
+    public function branchTemplate()
     {
-        return $this->belongsToMany(User::class, 'branch_user', 'branch_id', 'user_id')
-            ->withPivot(['role', 'permissions'])
-            ->withTimestamps();
-    }
-
-    public function isOnBreak(): bool
-    {
-        if (!$this->break_start || !$this->break_end) {
-            return false;
-        }
-        $now = now();
-        return $now >= $this->break_start && $now <= $this->break_end;
-    }
-
-    public function isEffectivelyOpen(): bool
-    {
-        return $this->is_active && !$this->is_paused && !$this->isOnBreak();
-    }
-
-    public function getEstimatedDeliveryTime(): int
-    {
-        return $this->avg_prep_time + ($this->avg_delivery_time_per_km * ($this->delivery_zone_radius > 0 ? ceil($this->delivery_zone_radius / 2) : 1));
-    }
-
-    public function getDeliveryFee(): int
-    {
-        return $this->base_delivery_fee;
+        return $this->hasOne(BranchTemplate::class, 'branch_id');
     }
 
     /**
-     * One‑to‑one relationship to the branch‑specific template configuration.
+     * Check if this branch is the store's main branch.
      */
-    public function branchTemplate(): HasOne
+    public function isMainBranch(): bool
     {
-        return $this->hasOne(BranchTemplate::class, 'branch_id');
+        return $this->store && $this->store->main_branch_id === $this->id;
+    }
+
+    /**
+     * Get the users assigned to this branch
+     */
+    public function assignedUsers()
+    {
+        return $this->belongsToMany(User::class, 'branch_user', 'branch_id', 'user_id')
+            ->withPivot('role', 'permissions');
     }
 }

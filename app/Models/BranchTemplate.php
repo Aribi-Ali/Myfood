@@ -4,14 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Represents a branch‑specific UI template.
  *
  * A branch can either have its own independent copy of a template
- * (is_linked = false) or be linked to a source template (is_linked = true).
- * When linked, changes to the source template can be propagated via a job.
- * The `version` column tracks history for the duplicated template.
+ * (is_synced = false) or be synced to a source template (is_synced = true).
+ * When synced, changes to the source template are propagated via a job.
  */
 class BranchTemplate extends Model
 {
@@ -20,16 +20,13 @@ class BranchTemplate extends Model
     protected $fillable = [
         'branch_id',
         'template_id',
-        'is_linked',   // boolean, true if linked to a source template
-        'version',     // integer for versioning / history
-        // optional linking fields – kept for flexibility
+        'is_synced',
         'source_branch_id',
         'source_template_id',
     ];
 
     protected $casts = [
-        'is_linked' => 'boolean',
-        'version'   => 'integer',
+        'is_synced' => 'boolean',
     ];
 
     public function branch(): BelongsTo
@@ -42,7 +39,7 @@ class BranchTemplate extends Model
         return $this->belongsTo(Template::class, 'template_id');
     }
 
-    // Optional source relationships for linked templates
+    // Optional source relationships for synced templates
     public function sourceBranch(): BelongsTo
     {
         return $this->belongsTo(StoreBranch::class, 'source_branch_id');
@@ -51,5 +48,16 @@ class BranchTemplate extends Model
     public function sourceTemplate(): BelongsTo
     {
         return $this->belongsTo(Template::class, 'source_template_id');
+    }
+    
+    /**
+     * Get the parent store for this branch template
+     */
+    public function getParentStore()
+    {
+        if ($this->branch) {
+            return $this->branch->store;
+        }
+        return null;
     }
 }
